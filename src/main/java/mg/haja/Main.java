@@ -1,21 +1,33 @@
 package mg.haja;
 
-import restaurant.DBConnection;
+import restaurant.*;
+
 import java.sql.SQLException;
 
 public class Main {
     public static void main(String[] args) {
-        String user = "mini_dish_db_manager";
-        String password = "123456";
-        String url = "jdbc:postgresql://localhost:5432/mini_dish_db";
+
+        DBConnection db = null;
 
         try {
-            DBConnection db = new DBConnection(url,user, password);
-            System.out.println("Connecté à la base de données");
-            db.close();
+            db = new DBConnection();
 
-        } catch (SQLException e) {
+            DataRetriever retriever = new DataRetriever(db.getConnection());
+
+            Dish dish = retriever.findDishById(1);
+
+            if (dish != null) {
+                System.out.println("Plat trouvé : " + dish.getName());
+            } else {
+                System.out.println("Aucun plat trouvé.");
+            }
+
+        } catch (Exception e) {
             throw new RuntimeException(e);
+        } finally {
+            if (db != null) {
+                db.close();
+            }
         }
     }
 }
