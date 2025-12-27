@@ -65,4 +65,59 @@ public class DataRetriever {
 
         return dish;
     }
+    public List<Ingredient> findIngredients(int page, int size) {
+
+        List<Ingredient> ingredients = new ArrayList<>();
+
+        String sql = """
+            SELECT 
+                i.id,
+                i.name,
+                i.price,
+                d.id AS dish_id,
+                d.name AS dish_name,
+                d.dish_type
+            FROM ingredient i
+            LEFT JOIN dish d ON i.id_dish = d.id
+            ORDER BY i.id
+            LIMIT ? OFFSET ?
+        """;
+
+        int offset = (page - 1) * size;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setInt(1, size);
+            ps.setInt(2, offset);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+
+                Dish dish = null;
+                if (rs.getInt("dish_id") != 0) {
+                    dish = new Dish(
+                            rs.getInt("dish_id"),
+                            rs.getString("dish_name"),
+                            DishTypeEnum.valueOf(rs.getString("dish_type")),
+                            new ArrayList<>()
+                    );
+                }
+
+                Ingredient ingredient = new Ingredient(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getDouble("price"),
+                        dish
+                );
+
+                ingredients.add(ingredient);
+            }
+
+        } catch (SQLException e) {
+           throw new RuntimeException(e);
+        }
+
+        return ingredients;
+    }
 }
