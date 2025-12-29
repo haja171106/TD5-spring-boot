@@ -188,4 +188,70 @@ public class DataRetriever {
         }
     }
 
+
+    public Dish saveDish(Dish dishToSave) {
+
+        String insertDishSql =
+                "INSERT INTO dish(name, dish_type) VALUES (?, ?) RETURNING id";
+
+        String updateDishSql =
+                "UPDATE dish SET name = ?, dish_type = ? WHERE id = ?";
+
+        String dissociateIngredientsSql =
+                "UPDATE ingredient SET id_dish = NULL WHERE id_dish = ?";
+
+        String associateIngredientSql =
+                "UPDATE ingredient SET id_dish = ? WHERE id = ?";
+
+        try {
+            connection.setAutoCommit(false);
+            if (dishToSave.getId() == 0) {
+                try (PreparedStatement ps = connection.prepareStatement(insertDishSql)) {
+                    ps.setString(1, dishToSave.getName());
+                    ps.setString(2, dishToSave.getDishType().name());
+
+                    ResultSet rs = ps.executeQuery();
+                    if (rs.next()) {
+                        dishToSave.setId(rs.getInt(1));
+                    }
+                }
+            } else {
+                try (PreparedStatement ps = connection.prepareStatement(updateDishSql)) {
+                    ps.setString(1, dishToSave.getName());
+                    ps.setString(2, dishToSave.getDishType().name());
+                    ps.setInt(3, dishToSave.getId());
+                    ps.executeUpdate();
+                }
+            }
+            try (PreparedStatement ps = connection.prepareStatement(dissociateIngredientsSql)) {
+                ps.setInt(1, dishToSave.getId());
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = connection.prepareStatement(associateIngredientSql)) {
+                for (Ingredient ingredient : dishToSave.getIngredients()) {
+                    ps.setInt(1, dishToSave.getId());
+                    ps.setInt(2, ingredient.getId());
+                    ps.executeUpdate();
+
+                    ingredient.setDish(dishToSave);
+                }
+            }
+            connection.commit();
+            return dishToSave;
+
+        } catch (Exception e) {
+            try {
+                connection.rollback();
+            } catch (Exception rollbackException) {
+                throw new RuntimeException(rollbackException);
+            }
+            throw new RuntimeException("Erreur :", e);
+
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (Exception ignored) {}
+        }
+    }
+
 }

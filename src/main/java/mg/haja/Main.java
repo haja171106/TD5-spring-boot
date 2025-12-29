@@ -28,11 +28,11 @@ public class Main {
 
             System.out.println("\nIngrédients (page " + page + ") :");
             for (Ingredient ingredient : ingredients) {
-                System.out.println("- " + ingredient.getName() + " | prix = " + ingredient.getPrice());
+                System.out.println("- " + ingredient.getName()
+                        + " | prix = " + ingredient.getPrice());
             }
             List<Ingredient> newIngredients = new ArrayList<>();
-
-            newIngredients.add(new Ingredient(0, "oeuf", 2.5, dish));
+            newIngredients.add(new Ingredient(0, "Oeuf", 2.5, dish));
             newIngredients.add(new Ingredient(0, "Fromage", 4.0, dish));
 
             List<Ingredient> savedIngredients =
@@ -40,8 +40,16 @@ public class Main {
 
             System.out.println("\nIngrédients créés avec succès :");
             for (Ingredient ing : savedIngredients) {
-                System.out.println(ing.getName() + " | prix = " + ing.getPrice());
+                System.out.println(ing.getName()
+                        + " | prix = " + ing.getPrice());
             }
+            dish.setIngredients(savedIngredients);
+
+            Dish savedDish = retriever.saveDish(dish);
+
+            System.out.println("\nPlat sauvegardé avec succès :");
+            System.out.println("ID : " + savedDish.getId());
+            System.out.println("Nom : " + savedDish.getName());
 
         } catch (RuntimeException e) {
             System.out.println("Erreur : " + e.getMessage());
