@@ -120,4 +120,72 @@ public class DataRetriever {
 
         return ingredients;
     }
+    public List<Ingredient> createIngredients(List<Ingredient> newIngredients) {
+
+        String checkSql = """
+            SELECT COUNT(*) FROM ingredient
+            WHERE name = ? AND id_dish = ?
+        """;
+
+        String insertSql = """
+            INSERT INTO ingredient (name, price, id_dish)
+            VALUES (?, ?, ?)
+            RETURNING id
+        """;
+
+        List<Ingredient> savedIngredients = new ArrayList<>();
+
+        try {
+            connection.setAutoCommit(false);
+
+            try (
+                    PreparedStatement checkStmt = connection.prepareStatement(checkSql);
+                    PreparedStatement insertStmt = connection.prepareStatement(insertSql)
+            ) {
+
+                for (Ingredient ingredient : newIngredients) {
+                    checkStmt.setString(1, ingredient.getName());
+                    checkStmt.setInt(2, ingredient.getDish().getId());
+
+                    ResultSet rs = checkStmt.executeQuery();
+                    rs.next();
+
+                    if (rs.getInt(1) > 0) {
+                        throw new RuntimeException(
+                                "L'ingrédient existe déjà : " + ingredient.getName()
+                        );
+                    }
+
+                    insertStmt.setString(1, ingredient.getName());
+                    insertStmt.setDouble(2, ingredient.getPrice());
+                    insertStmt.setInt(3, ingredient.getDish().getId());
+
+                    ResultSet inserted = insertStmt.executeQuery();
+                    inserted.next();
+
+                    ingredient.setId(inserted.getInt("id"));
+                    savedIngredients.add(ingredient);
+                }
+
+                connection.commit();
+                return savedIngredients;
+            }
+
+        } catch (Exception e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+            throw new RuntimeException(e);
+
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
 }
