@@ -11,47 +11,42 @@ public class Main {
         DBConnection db = null;
 
         try {
-
             db = new DBConnection();
             DataRetriever retriever = new DataRetriever(db.getConnection());
 
+            // ===== 1️⃣ findDishById =====
             Dish dish = retriever.findDishById(1);
-
-            if (dish == null) {
+            if (dish != null) {
+                System.out.println("Plat trouvé : " + dish.getName());
+            } else {
                 System.out.println("Aucun plat trouvé.");
-                return;
             }
 
-            System.out.println("Plat trouvé : " + dish.getName());
-            System.out.println("Ingrédients du plat :");
-            for (Ingredient i : dish.getIngredients()) {
-                System.out.println(" - " + i.getName());
-            }
+            // ===== 2️⃣ findIngredients (pagination simple) =====
             int page = 1;
             int size = 5;
 
             List<Ingredient> ingredients = retriever.findIngredients(page, size);
-
             System.out.println("\nIngrédients (page " + page + ") :");
             for (Ingredient ingredient : ingredients) {
-                System.out.println(
-                        "- " + ingredient.getName() +
-                                " | prix = " + ingredient.getPrice()
-                );
+                System.out.println("- " + ingredient.getName()
+                        + " | prix = " + ingredient.getPrice());
             }
+
+            // ===== 3️⃣ createIngredients =====
             List<Ingredient> newIngredients = new ArrayList<>();
-   //         newIngredients.add(new Ingredient(0, "Oignon", 800.0, dish));
+            // Exemple (décommente si besoin)
+            // newIngredients.add(new Ingredient(0, "Farine", 2400.0, dish));
 
             List<Ingredient> savedIngredients =
                     retriever.createIngredients(newIngredients);
 
             System.out.println("\nIngrédients créés avec succès :");
             for (Ingredient ing : savedIngredients) {
-                System.out.println(
-                        "- " + ing.getName() +
-                                " | prix = " + ing.getPrice()
-                );
+                System.out.println(ing.getName() + " | prix = " + ing.getPrice());
             }
+
+            // ===== 4️⃣ saveDish =====
             dish.setIngredients(savedIngredients);
             Dish savedDish = retriever.saveDish(dish);
 
@@ -59,10 +54,10 @@ public class Main {
             System.out.println("ID : " + savedDish.getId());
             System.out.println("Nom : " + savedDish.getName());
 
-            List<Dish> dishes =
-                    retriever.findDishsByIngredientName("Tomate");
+            // ===== 5️⃣ findDishsByIngredientName =====
+            System.out.println("\nPlats contenant 'Fromage' :");
+            List<Dish> dishes = retriever.findDishsByIngredientName("Fromage");
 
-            System.out.println("\nPlats contenant 'tomate' :");
             for (Dish d : dishes) {
                 System.out.println("Plat : " + d.getName());
                 for (Ingredient i : d.getIngredients()) {
@@ -70,9 +65,28 @@ public class Main {
                 }
             }
 
+            // ===== 6️⃣ findIngredientsByCriteria (NOUVELLE MÉTHODE) =====
+            System.out.println("\nIngrédients filtrés par critères :");
+
+            List<Ingredient> filteredIngredients =
+                    retriever.findIngredientsByCriteria(
+                            "Tomate",
+                            CategoryEnum.VEGETABLE,
+                            "Salade",
+                            1,
+                            5
+                    );
+
+            for (Ingredient i : filteredIngredients) {
+                System.out.println(
+                        "- " + i.getName()
+                                + " | prix = " + i.getPrice()
+                                + " | plat = " + (i.getDish() != null ? i.getDish().getName() : "Aucun")
+                );
+            }
+
         } catch (RuntimeException e) {
-            System.out.println("❌ Erreur : " + e.getMessage());
-            e.printStackTrace();
+            System.out.println("Erreur : " + e.getMessage());
         } finally {
             if (db != null) {
                 db.close();
