@@ -276,32 +276,24 @@ public class DataRetriever {
 
         List<Object> params = new ArrayList<>();
 
-        // 🔎 filtre nom ingrédient
         if (ingredientName != null && !ingredientName.isBlank()) {
             sql.append(" AND i.name ILIKE ?");
             params.add("%" + ingredientName + "%");
         }
-
-        // 🔎 filtre catégorie
         if (category != null) {
             sql.append(" AND i.category = ?");
             params.add(category.name());
         }
-
-        // 🔎 filtre nom du plat
         if (dishName != null && !dishName.isBlank()) {
             sql.append(" AND d.name ILIKE ?");
             params.add("%" + dishName + "%");
         }
-
-        // 📄 pagination
         sql.append(" ORDER BY i.id LIMIT ? OFFSET ?");
         params.add(size);
         params.add((page - 1) * size);
 
         try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
 
-            // 🔐 injection des paramètres
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
             }

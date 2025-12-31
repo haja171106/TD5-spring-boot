@@ -13,16 +13,12 @@ public class Main {
         try {
             db = new DBConnection();
             DataRetriever retriever = new DataRetriever(db.getConnection());
-
-            // ===== 1️⃣ findDishById =====
             Dish dish = retriever.findDishById(1);
             if (dish != null) {
                 System.out.println("Plat trouvé : " + dish.getName());
             } else {
                 System.out.println("Aucun plat trouvé.");
             }
-
-            // ===== 2️⃣ findIngredients (pagination simple) =====
             int page = 1;
             int size = 5;
 
@@ -32,11 +28,7 @@ public class Main {
                 System.out.println("- " + ingredient.getName()
                         + " | prix = " + ingredient.getPrice());
             }
-
-            // ===== 3️⃣ createIngredients =====
             List<Ingredient> newIngredients = new ArrayList<>();
-            // Exemple (décommente si besoin)
-            // newIngredients.add(new Ingredient(0, "Farine", 2400.0, dish));
 
             List<Ingredient> savedIngredients =
                     retriever.createIngredients(newIngredients);
@@ -45,8 +37,6 @@ public class Main {
             for (Ingredient ing : savedIngredients) {
                 System.out.println(ing.getName() + " | prix = " + ing.getPrice());
             }
-
-            // ===== 4️⃣ saveDish =====
             dish.setIngredients(savedIngredients);
             Dish savedDish = retriever.saveDish(dish);
 
@@ -54,7 +44,6 @@ public class Main {
             System.out.println("ID : " + savedDish.getId());
             System.out.println("Nom : " + savedDish.getName());
 
-            // ===== 5️⃣ findDishsByIngredientName =====
             System.out.println("\nPlats contenant 'Fromage' :");
             List<Dish> dishes = retriever.findDishsByIngredientName("Fromage");
 
@@ -64,8 +53,6 @@ public class Main {
                     System.out.println("  - " + i.getName());
                 }
             }
-
-            // ===== 6️⃣ findIngredientsByCriteria (NOUVELLE MÉTHODE) =====
             System.out.println("\nIngrédients filtrés par critères :");
 
             List<Ingredient> filteredIngredients =
