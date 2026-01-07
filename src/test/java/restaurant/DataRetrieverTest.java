@@ -13,7 +13,7 @@ public class DataRetrieverTest {
 
     @BeforeAll
     public static void setup() {
-        db = new DBConnection();  // Assure-toi que la DB est prête et que dotenv fonctionne
+        db = new DBConnection();
         retriever = new DataRetriever(db.getConnection());
     }
 
@@ -28,7 +28,7 @@ public class DataRetrieverTest {
         Dish dish = retriever.findDishById(1);
         assertNotNull(dish, "Dish should not be null");
         assertEquals("Salade fraîche", dish.getName());
-        assertEquals(2, dish.getIngredients().size()); // Selon ton jeu de données
+        assertEquals(2, dish.getIngredients().size());
     }
 
     @Test
@@ -107,7 +107,7 @@ public class DataRetrieverTest {
         Dish dish = retriever.findDishById(1);
         List<Ingredient> newIngredients = List.of(
                 new Ingredient(0, "Carotte", 2000.0, dish),
-                new Ingredient(0, "Laitue", 2000.0, dish) // déjà existante
+                new Ingredient(0, "Laitue", 2000.0, dish)
         );
         assertThrows(RuntimeException.class, () -> retriever.createIngredients(newIngredients));
     }

@@ -26,7 +26,7 @@ public class Main {
             System.out.println("\nIngrédients (page " + page + ") :");
             for (Ingredient ingredient : ingredients) {
                 System.out.println("- " + ingredient.getName()
-                        + " | prix = " + ingredient.getPrice());
+                        + " prix = " + ingredient.getPrice());
             }
             List<Ingredient> newIngredients = new ArrayList<>();
 
@@ -35,7 +35,7 @@ public class Main {
 
             System.out.println("\nIngrédients créés avec succès :");
             for (Ingredient ing : savedIngredients) {
-                System.out.println(ing.getName() + " | prix = " + ing.getPrice());
+                System.out.println(ing.getName() + " prix = " + ing.getPrice());
             }
             dish.setIngredients(savedIngredients);
             Dish savedDish = retriever.saveDish(dish);
@@ -67,8 +67,8 @@ public class Main {
             for (Ingredient i : filteredIngredients) {
                 System.out.println(
                         "- " + i.getName()
-                                + " | prix = " + i.getPrice()
-                                + " | plat = " + (i.getDish() != null ? i.getDish().getName() : "Aucun")
+                                + " prix = " + i.getPrice()
+                                + " plat = " + (i.getDish() != null ? i.getDish().getName() : "Aucun")
                 );
             }
 

@@ -270,7 +270,7 @@ public class DataRetriever {
             d.name AS dish_name,
             d.dish_type
         FROM ingredient i
-        LEFT JOIN dish d ON i.id_dish = d.id
+        JOIN dish d ON i.id_dish = d.id
         WHERE 1=1
     """);
 
@@ -280,14 +280,17 @@ public class DataRetriever {
             sql.append(" AND i.name ILIKE ?");
             params.add("%" + ingredientName + "%");
         }
+
         if (category != null) {
-            sql.append(" AND i.category = ?");
+            sql.append(" AND i.category = ?::ingredient_category");
             params.add(category.name());
         }
+
         if (dishName != null && !dishName.isBlank()) {
             sql.append(" AND d.name ILIKE ?");
             params.add("%" + dishName + "%");
         }
+
         sql.append(" ORDER BY i.id LIMIT ? OFFSET ?");
         params.add(size);
         params.add((page - 1) * size);
@@ -328,5 +331,6 @@ public class DataRetriever {
 
         return ingredients;
     }
+
 
 }
