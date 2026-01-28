@@ -26,3 +26,14 @@ INSERT INTO dishIngredient (id, id_dish, id_ingredient, quantity_required, unit)
     (3, 2, 3, 1.00, 'KG'),
     (4, 4, 4, 0.30, 'KG'),
     (5, 4, 5, 0.20, 'KG');
+
+create typt movement_type as enum ('IN','OUT');
+
+create table stock_movement (
+    id serial,
+    id_ingredient int references ingredient(id) ON DELETE CASCADE ON UPDATE CASCADE,,
+    quantity numeric,
+    type movement_type,
+    unit unit_type,
+    creation_datetime timestamp
+);

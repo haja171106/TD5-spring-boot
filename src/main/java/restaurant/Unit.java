@@ -1,5 +1,5 @@
 package restaurant;
 
-public enum UnitType {
+public enum Unit {
     PCS , KG , L
 }

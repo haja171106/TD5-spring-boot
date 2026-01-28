@@ -2,82 +2,41 @@ package mg.haja;
 
 import restaurant.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Connection;
 
 public class Main {
+
     public static void main(String[] args) {
 
-        DBConnection db = null;
+        DBConnection db = new DBConnection();
+        Connection connection = null;
 
         try {
-            db = new DBConnection();
-            DataRetriever retriever = new DataRetriever(db.getConnection());
+            connection = db.getConnection();
+            DataRetriever retriever = new DataRetriever(connection);
+
             Dish dish = retriever.findDishById(1);
-            if (dish != null) {
-                System.out.println("Plat trouvé : " + dish.getName());
-            } else {
-                System.out.println("Aucun plat trouvé.");
-            }
-            int page = 1;
-            int size = 5;
 
-            List<Ingredient> ingredients = retriever.findIngredients(page, size);
-            System.out.println("\nIngrédients (page " + page + ") :");
-            for (Ingredient ingredient : ingredients) {
-                System.out.println("- " + ingredient.getName()
-                        + " prix = " + ingredient.getPrice());
-            }
-            List<Ingredient> newIngredients = new ArrayList<>();
+            System.out.println("Plat trouvé : " + dish.getName());
+            System.out.println("Type : " + dish.getDishType());
 
-            List<Ingredient> savedIngredients =
-                    retriever.createIngredients(newIngredients);
-
-            System.out.println("\nIngrédients créés avec succès :");
-            for (Ingredient ing : savedIngredients) {
-                System.out.println(ing.getName() + " prix = " + ing.getPrice());
-            }
-            dish.setIngredients(savedIngredients);
-            Dish savedDish = retriever.saveDish(dish);
-
-            System.out.println("\nPlat sauvegardé avec succès :");
-            System.out.println("ID : " + savedDish.getId());
-            System.out.println("Nom : " + savedDish.getName());
-
-            System.out.println("\nPlats contenant 'Fromage' :");
-            List<Dish> dishes = retriever.findDishsByIngredientName("Fromage");
-
-            for (Dish d : dishes) {
-                System.out.println("Plat : " + d.getName());
-                for (Ingredient i : d.getIngredients()) {
-                    System.out.println("  - " + i.getName());
-                }
-            }
-            System.out.println("\nIngrédients filtrés par critères :");
-
-            List<Ingredient> filteredIngredients =
-                    retriever.findIngredientsByCriteria(
-                            "Tomate",
-                            CategoryEnum.VEGETABLE,
-                            "Salade",
-                            1,
-                            5
-                    );
-
-            for (Ingredient i : filteredIngredients) {
+            System.out.println("Ingrédients :");
+            for (DishIngredient di : dish.getDishIngredients()) {
                 System.out.println(
-                        "- " + i.getName()
-                                + " prix = " + i.getPrice()
-                                + " plat = " + (i.getDish() != null ? i.getDish().getName() : "Aucun")
+                        "- " + di.getIngredient().getName()
+                                + " | quantité = " + di.getQuantityRequired()
                 );
             }
 
+            dish.setName("Salade fraîche");
+            retriever.saveDish(dish);
+
+            System.out.println("Plat mis à jour avec succès");
+
         } catch (RuntimeException e) {
-            System.out.println("Erreur : " + e.getMessage());
+            throw new RuntimeException(e);
         } finally {
-            if (db != null) {
-                db.close();
-            }
+            db.closeConnection(connection);
         }
     }
 }
