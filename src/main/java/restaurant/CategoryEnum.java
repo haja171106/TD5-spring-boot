@@ -1,5 +1,5 @@
 package restaurant;
 
 public enum CategoryEnum {
-    VEGETABLE , ANMAL , MARINE , DAIRY , OTHER
+    VEGETABLE , ANIMAL , MARINE , DAIRY , OTHER
 }
