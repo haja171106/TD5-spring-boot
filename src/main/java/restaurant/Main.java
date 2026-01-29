@@ -1,5 +1,7 @@
 package restaurant;
 
+import java.util.List;
+
 public class Main {
     public static void main(String[] args) {
         DataRetriever dataRetriever = new DataRetriever();
@@ -20,5 +22,22 @@ public class Main {
 //        Dish savedNewRizLegume = dataRetriever.saveDish(rizLegume);
 //        System.out.println(savedNewRizLegume); // Should throw exception
 
+        DishOrder saladeOrder = new DishOrder();
+        saladeOrder.setDish(saladeVerte);
+        saladeOrder.setQuantity(2);
+
+        DishOrder pouletOrder = new DishOrder();
+        pouletOrder.setDish(poulet);
+        pouletOrder.setQuantity(1);
+
+        Order order = new Order();
+        order.setDishOrderList(List.of(saladeOrder, pouletOrder));
+
+        Order savedOrder = dataRetriever.saveOrder(order);
+
+        System.out.println("Commande sauvegardée avec succès");
+        System.out.println("Référence : " + savedOrder.getReference());
+        System.out.println("Total HT : " + savedOrder.getTotalAmountHT());
+        System.out.println("Total TTC : " + savedOrder.getTotalAmountTTC());
     }
 }

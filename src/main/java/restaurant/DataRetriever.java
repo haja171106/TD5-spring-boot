@@ -467,10 +467,13 @@ public class DataRetriever {
 
     private String generateOrderReference(Connection conn) throws SQLException {
         try (PreparedStatement ps =
-                     conn.prepareStatement("SELECT COUNT(*) FROM orders")) {
+                     conn.prepareStatement("SELECT nextval('order_reference_seq')")) {
+
             ResultSet rs = ps.executeQuery();
             rs.next();
-            int next = rs.getInt(1) + 1;
+
+            long next = rs.getLong(1);
+
             return String.format("ORD%05d", next);
         }
     }
