@@ -1,7 +1,4 @@
-package restaurant;
-
-import java.util.List;
-import java.util.Objects;
+package restaurant.model;
 
 public class DishIngredient {
     private Dish dish;

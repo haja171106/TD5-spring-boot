@@ -59,3 +59,20 @@ create table if not exists dish_order
     id_dish  int references dish (id),
     quantity int
     );
+
+CREATE TABLE IF NOT EXISTS sale
+(
+    id SERIAL PRIMARY KEY,
+    creation_datetime TIMESTAMP
+);
+
+CREATE TYPE payment_status AS ENUM ('PAID', 'UNPAID');
+
+ALTER TABLE "order"
+    ADD COLUMN IF NOT EXISTS status payment_status,
+    ADD COLUMN IF NOT EXISTS id_sale INT;
+
+ALTER TABLE "order"
+    ADD CONSTRAINT fk_order_sale
+        FOREIGN KEY (id_sale)
+            REFERENCES sale(id);

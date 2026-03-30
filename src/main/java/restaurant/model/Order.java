@@ -1,4 +1,4 @@
-package restaurant;
+package restaurant.model;
 
 import java.time.Instant;
 import java.util.List;
@@ -9,6 +9,8 @@ public class Order {
     private String reference;
     private Instant creationDatetime;
     private List<DishOrder> dishOrderList;
+    private PaymentStatusEnum paymentStatus;
+
 
     public Integer getId() {
         return id;
@@ -42,6 +44,26 @@ public class Order {
         this.dishOrderList = dishOrderList;
     }
 
+    public PaymentStatusEnum getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(PaymentStatusEnum paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Order order = (Order) o;
+        return Objects.equals(id, order.id) && Objects.equals(reference, order.reference) && Objects.equals(creationDatetime, order.creationDatetime) && Objects.equals(dishOrderList, order.dishOrderList) && paymentStatus == order.paymentStatus;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, reference, creationDatetime, dishOrderList, paymentStatus);
+    }
+
     @Override
     public String toString() {
         return "Order{" +
@@ -49,6 +71,7 @@ public class Order {
                 ", reference='" + reference + '\'' +
                 ", creationDatetime=" + creationDatetime +
                 ", dishOrderList=" + dishOrderList +
+                ", paymentStatus=" + paymentStatus +
                 '}';
     }
 
@@ -62,17 +85,5 @@ public class Order {
 
     public Double getTotalAmountTTC() {
         return getTotalAmountHT() * 1.20;
-    }
-
-
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof Order order)) return false;
-        return Objects.equals(id, order.id) && Objects.equals(reference, order.reference) && Objects.equals(creationDatetime, order.creationDatetime) && Objects.equals(dishOrderList, order.dishOrderList);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, reference, creationDatetime, dishOrderList);
     }
 }

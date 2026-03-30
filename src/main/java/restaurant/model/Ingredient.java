@@ -1,12 +1,10 @@
-package restaurant;
+package restaurant.model;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
-
 import static java.time.Instant.now;
 
 public class Ingredient {
@@ -75,30 +73,38 @@ public class Ingredient {
     }
 
     public StockValue getStockValueAt(Instant t) {
-        if (stockMovementList == null) return null;
+        if (stockMovementList == null || stockMovementList.isEmpty()) {
+            StockValue sv = new StockValue();
+            sv.setQuantity(0.0);
+            sv.setUnit(Unit.KG);
+            return sv;
+        }
         Map<Unit, List<StockMovement>> unitSet = stockMovementList.stream()
-                .collect(Collectors.groupingBy(stockMovement -> stockMovement.getValue().getUnit()));
+                .collect(Collectors.groupingBy(m -> m.getValue().getUnit()));
+
         if (unitSet.size() > 1) {
-            throw new RuntimeException("Multiple unit found and not handle for conversion");
+            throw new RuntimeException("Multiple units not handled");
         }
 
-        List<StockMovement> stockMovements = stockMovementList.stream()
-                .filter(stockMovement -> !stockMovement.getCreationDatetime().isAfter(t))
+        List<StockMovement> filtered = stockMovementList.stream()
+                .filter(m -> !m.getCreationDatetime().isAfter(t))
                 .toList();
-        double movementIn = stockMovements.stream()
-                .filter(stockMovement -> stockMovement.getType().equals(MovementTypeEnum.IN))
-                .flatMapToDouble(stockMovement -> DoubleStream.of(stockMovement.getValue().getQuantity()))
-                .sum();
-        double movementOut = stockMovements.stream()
-                .filter(stockMovement -> stockMovement.getType().equals(MovementTypeEnum.OUT))
-                .flatMapToDouble(stockMovement -> DoubleStream.of(stockMovement.getValue().getQuantity()))
+
+        double in = filtered.stream()
+                .filter(m -> m.getType() == MovementTypeEnum.IN)
+                .mapToDouble(m -> m.getValue().getQuantity())
                 .sum();
 
-        StockValue stockValue = new StockValue();
-        stockValue.setQuantity(movementIn - movementOut);
-        stockValue.setUnit(unitSet.keySet().stream().findFirst().get());
+        double out = filtered.stream()
+                .filter(m -> m.getType() == MovementTypeEnum.OUT)
+                .mapToDouble(m -> m.getValue().getQuantity())
+                .sum();
 
-        return stockValue;
+        StockValue sv = new StockValue();
+        sv.setQuantity(in - out);
+        sv.setUnit(unitSet.keySet().iterator().next());
+
+        return sv;
     }
 
     @Override

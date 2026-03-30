@@ -1,4 +1,4 @@
-package restaurant;
+package restaurant.model;
 
 import java.time.Instant;
 import java.util.Objects;

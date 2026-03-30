@@ -1,4 +1,5 @@
-package restaurant;
+package restaurant.model;
+
 import java.util.Objects;
 
 public class DishOrder {
