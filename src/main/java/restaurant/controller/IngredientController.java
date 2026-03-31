@@ -1,8 +1,6 @@
 package restaurant.controller;
 
-import restaurant.model.Ingredient;
-import restaurant.model.StockValue;
-import restaurant.model.Unit;
+import restaurant.model.*;
 import restaurant.repository.IngredientRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,12 +20,12 @@ public class IngredientController {
     }
 
     @GetMapping
-    public List<Ingredient> getAllIngredients() {
+    public List<Ingredient> getAll() {
         return ingredientRepository.findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getIngredientById(@PathVariable Integer id) {
+    public ResponseEntity<?> getById(@PathVariable Integer id) {
         Ingredient ingredient = ingredientRepository.findById(id);
         if (ingredient == null) {
             return ResponseEntity.status(404)
@@ -37,7 +35,7 @@ public class IngredientController {
     }
 
     @GetMapping("/{id}/stock")
-    public ResponseEntity<?> getIngredientStock(
+    public ResponseEntity<?> getStock(
             @PathVariable Integer id,
             @RequestParam(required = false) String at,
             @RequestParam(required = false) String unit) {
@@ -55,11 +53,11 @@ public class IngredientController {
 
         Instant instant = Instant.parse(at);
         Unit unitEnum = Unit.valueOf(unit.toUpperCase());
-        StockValue stockValue = ingredientRepository.getStockValueAt(id, instant, unitEnum);
+        StockValue stock = ingredientRepository.getStockValueAt(id, instant, unitEnum);
 
         return ResponseEntity.ok(Map.of(
-                "unit", stockValue.getUnit(),
-                "quantity", stockValue.getQuantity()
+                "unit", stock.getUnit(),
+                "quantity", stock.getQuantity()
         ));
     }
 }

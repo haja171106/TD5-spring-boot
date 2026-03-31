@@ -19,12 +19,12 @@ public class DishController {
     }
 
     @GetMapping
-    public List<Dish> getAllDishes() {
+    public List<Dish> getAll() {
         return dishRepository.findAll();
     }
 
     @PutMapping("/{id}/ingredients")
-    public ResponseEntity<?> updateDishIngredients(
+    public ResponseEntity<?> updateIngredients(
             @PathVariable Integer id,
             @RequestBody(required = false) List<Ingredient> ingredients) {
 
@@ -39,7 +39,23 @@ public class DishController {
                     .body("Dish.id=" + id + " is not found");
         }
 
-        Dish updated = dishRepository.updateIngredients(id, ingredients);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(dishRepository.updateIngredients(id, ingredients));
+    }
+
+    @GetMapping("/{id}/ingredients")
+    public ResponseEntity<?> getDishIngredients(
+            @PathVariable Integer id,
+            @RequestParam(required = false) String ingredientName,
+            @RequestParam(required = false) Double ingredientPriceAround) {
+
+        Dish dish = dishRepository.findById(id);
+        if (dish == null) {
+            return ResponseEntity.status(404)
+                    .body("Dish.id=" + id + " is not found");
+        }
+
+        return ResponseEntity.ok(
+                dishRepository.findIngredientsByDishIdWithFilters(id, ingredientName, ingredientPriceAround)
+        );
     }
 }

@@ -1,90 +1,96 @@
 package restaurant.repository;
 
 import restaurant.model.*;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import restaurant.model.StockValue;
 
-import java.sql.Timestamp;
+import javax.sql.DataSource;
+import java.sql.*;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 public class IngredientRepository {
 
-    private final JdbcTemplate jdbc;
+    private final DataSource dataSource;
 
-    public IngredientRepository(JdbcTemplate jdbc) {
-        this.jdbc = jdbc;
+    public IngredientRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     public List<Ingredient> findAll() {
-        return jdbc.query(
-                "SELECT id, name, price, category FROM ingredient",
-                (rs, row) -> {
-                    Ingredient ingredient = new Ingredient();
-                    ingredient.setId(rs.getInt("id"));
-                    ingredient.setName(rs.getString("name"));
-                    ingredient.setPrice(rs.getDouble("price"));
-
-                    String category = rs.getString("category");
-                    if (category != null) {
-                        ingredient.setCategory(CategoryEnum.valueOf(category));
-                    }
-
-                    ingredient.setStockMovementList(List.of());
-                    return ingredient;
-                }
-        );
+        List<Ingredient> ingredients = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT id, name, price, category FROM ingredient")) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ingredients.add(mapIngredient(rs));
+            }
+            return ingredients;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Ingredient findById(Integer id) {
-        List<Ingredient> results = jdbc.query(
-                "SELECT id, name, price, category FROM ingredient WHERE id = ?",
-                (rs, row) -> new Ingredient(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        CategoryEnum.valueOf(rs.getString("category")),
-                        rs.getDouble("price"),
-                        List.of()
-                ),
-                id
-        );
-        if (results.isEmpty()) return null;
-        return results.get(0);
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT id, name, price, category FROM ingredient WHERE id = ?")) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return mapIngredient(rs);
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public StockValue getStockValueAt(int ingredientId, Instant at, Unit unit) {
-        List<StockValue> results = jdbc.query("""
-        SELECT
-            COALESCE(SUM(
-                CASE
-                    WHEN type = 'IN'  THEN quantity
-                    WHEN type = 'OUT' THEN -quantity
-                    ELSE 0
-                END
-            ), 0) AS stock_quantity
-        FROM stock_movement
-        WHERE id_ingredient = ?
-          AND creation_datetime <= ?
-          AND unit = CAST(? AS unit)
-        """,
-                (rs, row) -> {
-                    StockValue sv = new StockValue();
-                    sv.setQuantity(rs.getDouble("stock_quantity"));
-                    sv.setUnit(unit);
-                    return sv;
-                },
-                ingredientId,
-                Timestamp.from(at),
-                unit.name()
-        );
-        if (results.isEmpty()) {
+        String sql = """
+            SELECT
+                COALESCE(SUM(
+                    CASE
+                        WHEN type = 'IN'  THEN quantity
+                        WHEN type = 'OUT' THEN -quantity
+                        ELSE 0
+                    END
+                ), 0) AS stock_quantity
+            FROM stock_movement
+            WHERE id_ingredient = ?
+              AND creation_datetime <= ?
+              AND unit = ?::unit
+            """;
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, ingredientId);
+            ps.setTimestamp(2, Timestamp.from(at));
+            ps.setString(3, unit.name());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                StockValue sv = new StockValue();
+                sv.setQuantity(rs.getDouble("stock_quantity"));
+                sv.setUnit(unit);
+                return sv;
+            }
             StockValue zero = new StockValue();
             zero.setQuantity(0.0);
             zero.setUnit(unit);
             return zero;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        return results.get(0);
+    }
+
+    private Ingredient mapIngredient(ResultSet rs) throws SQLException {
+        return new Ingredient(
+                rs.getInt("id"),
+                rs.getString("name"),
+                CategoryEnum.valueOf(rs.getString("category")),
+                rs.getDouble("price"),
+                List.of()
+        );
     }
 }
