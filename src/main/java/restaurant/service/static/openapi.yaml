@@ -1,0 +1,307 @@
+openapi: 3.0.3
+info:
+  title: Restaurant API
+  description: API REST pour la gestion des plats et des ingrédients
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Serveur local de développement
+
+tags:
+  - name: Dishes
+    description: Opérations sur les plats
+  - name: Ingredients
+    description: Opérations sur les ingrédients
+
+paths:
+
+  /dishes:
+    get:
+      tags: [Dishes]
+      summary: Récupérer tous les plats
+      operationId: getAllDishes
+      responses:
+        "200":
+          description: Liste des plats avec leurs ingrédients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dish"
+              example:
+                - id: 1
+                  name: "Poulet rôti"
+                  price: 12.50
+                  dishType: "MAIN_COURSE"
+                  dishIngredients:
+                    - ingredient:
+                        id: 3
+                        name: "Poulet"
+                        price: 5.00
+                        category: "MEAT"
+                      quantity: 0.5
+                      unit: "KG"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /dishes/{id}:
+    get:
+      tags: [Dishes]
+      summary: Récupérer un plat par son ID
+      operationId: getDishById
+      parameters:
+        - $ref: "#/components/parameters/IntId"
+      responses:
+        "200":
+          description: Le plat correspondant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dish"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /dishes/{id}/ingredients:
+    put:
+      tags: [Dishes]
+      summary: Remplacer la liste des ingrédients d'un plat
+      description: >
+        Supprime tous les ingrédients existants du plat puis insère
+        ceux fournis dans le corps de la requête.
+        Les ingrédients sans `id` sont ignorés.
+      operationId: updateDishIngredients
+      parameters:
+        - $ref: "#/components/parameters/IntId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/IngredientRef"
+            example:
+              - id: 1
+              - id: 4
+      responses:
+        "200":
+          description: Plat mis à jour avec les nouveaux ingrédients
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dish"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /ingredients:
+    get:
+      tags: [Ingredients]
+      summary: Récupérer tous les ingrédients
+      operationId: getAllIngredients
+      responses:
+        "200":
+          description: Liste de tous les ingrédients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ingredient"
+              example:
+                - id: 1
+                  name: "Tomate"
+                  price: 1.20
+                  category: "VEGETABLE"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /ingredients/{id}:
+    get:
+      tags: [Ingredients]
+      summary: Récupérer un ingrédient par son ID
+      operationId: getIngredientById
+      parameters:
+        - $ref: "#/components/parameters/IntId"
+      responses:
+        "200":
+          description: L'ingrédient correspondant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ingredient"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /ingredients/{id}/stock:
+    get:
+      tags: [Ingredients]
+      summary: Valeur du stock d'un ingrédient à un instant donné
+      operationId: getStockValue
+      parameters:
+        - $ref: "#/components/parameters/IntId"
+        - name: at
+          in: query
+          required: true
+          description: Date/heure ISO-8601 jusqu'à laquelle sommer les mouvements
+          schema:
+            type: string
+            format: date-time
+          example: "2024-06-01T00:00:00Z"
+        - name: unit
+          in: query
+          required: true
+          description: Unité dans laquelle exprimer le stock
+          schema:
+            $ref: "#/components/schemas/Unit"
+      responses:
+        "200":
+          description: Quantité en stock à la date demandée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockValue"
+              example:
+                quantity: 12.5
+                unit: "KG"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+
+  parameters:
+    IntId:
+      name: id
+      in: path
+      required: true
+      description: Identifiant entier de la ressource
+      schema:
+        type: integer
+        format: int32
+        example: 1
+
+  responses:
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          example:
+            status: 404
+            message: "Resource not found"
+    InternalError:
+      description: Erreur serveur interne
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          example:
+            status: 500
+            message: "Internal server error"
+
+  schemas:
+
+    Unit:
+      type: string
+      enum: [KG, G, L, ML, UNIT]
+      description: Unité de mesure
+
+    CategoryEnum:
+      type: string
+      enum: [MEAT, VEGETABLE, DAIRY, SPICE, OTHER]
+      description: Catégorie d'ingrédient
+
+    DishTypeEnum:
+      type: string
+      enum: [STARTER, MAIN_COURSE, DESSERT, DRINK]
+      description: Type de plat
+
+    Ingredient:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 3
+        name:
+          type: string
+          example: "Poulet"
+        price:
+          type: number
+          format: double
+          example: 5.00
+        category:
+          $ref: "#/components/schemas/CategoryEnum"
+
+    IngredientRef:
+      description: Référence légère à un ingrédient (pour les requêtes)
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 3
+
+    DishIngredient:
+      type: object
+      properties:
+        ingredient:
+          $ref: "#/components/schemas/Ingredient"
+        quantity:
+          type: number
+          format: double
+          example: 0.5
+        unit:
+          $ref: "#/components/schemas/Unit"
+
+    Dish:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 1
+        name:
+          type: string
+          example: "Poulet rôti"
+        price:
+          type: number
+          format: double
+          example: 12.50
+        dishType:
+          $ref: "#/components/schemas/DishTypeEnum"
+        dishIngredients:
+          type: array
+          items:
+            $ref: "#/components/schemas/DishIngredient"
+
+    StockValue:
+      type: object
+      properties:
+        quantity:
+          type: number
+          format: double
+          example: 12.5
+        unit:
+          $ref: "#/components/schemas/Unit"
+
+    ApiError:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: "Resource not found"

@@ -1,4 +1,4 @@
-package restaurant.model;
+package restaurant.entity;
 
 public class DishIngredient {
     private Dish dish;

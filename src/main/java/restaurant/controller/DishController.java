@@ -1,7 +1,7 @@
 package restaurant.controller;
 
-import restaurant.model.Dish;
-import restaurant.model.Ingredient;
+import restaurant.entity.Dish;
+import restaurant.entity.Ingredient;
 import restaurant.repository.DishRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

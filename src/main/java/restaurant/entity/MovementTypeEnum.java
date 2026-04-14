@@ -1,4 +1,4 @@
-package restaurant.model;
+package restaurant.entity;
 
 public enum MovementTypeEnum {
     IN , OUT

@@ -1,6 +1,6 @@
 package restaurant.repository;
 
-import restaurant.model.*;
+import restaurant.entity.*;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
